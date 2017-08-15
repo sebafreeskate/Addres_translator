@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include "AddressTranslator.h"
-#include "main.h"
+#include "PageFault.h"
 
 std::vector<uint64_t> parseLine(const char* line, char delimeter) {
 	std::vector<uint64_t> tokens;
@@ -23,7 +23,6 @@ std::vector<uint64_t> parseLine(const char* line, char delimeter) {
 }
 
 template <typename Func>
-
 void for_next_n_lines_in_file(std::ifstream & in, int n, Func action) {
 	std::string line;
 	for (int i = 0; i < n; ++i) {
@@ -51,7 +50,7 @@ int main(int argc, char * argv[]) {
 	std::cerr << "invalid params" << std::endl;
 	return -2;
 	} */
-	std::ifstream in("C:/Users/sebafreeskate/Source/Repos/Address_translator/data.txt");
+	std::ifstream in("C:/Users/sebafreeskate/Source/Repos/Address_translator/test.txt");
 	if (!in.is_open()) {
 		std::cerr << "cant open file " << std::endl;
 		return -1;
@@ -98,14 +97,15 @@ int main(int argc, char * argv[]) {
 	for_next_n_lines_in_file(in, queryCount, 
 		[&translator, &out](const std::vector<uint64_t> & tl) {
 		if (!tl.empty()) {
-			uint64_t physicalAddress = translator.getPhysicalAddressOf(tl[0]);
-			if (!physicalAddress) {
-				std::cout << "fault" << std::endl;
-				out << "fault" << std::endl;
-			}
-			else {
+			uint64_t physicalAddress;
+			try {
+				physicalAddress = translator.getPhysicalAddressOf(tl[0]);
 				std::cout << physicalAddress << std::endl;
 				out << physicalAddress << std::endl;
+			}
+			catch (PageFault &e) {
+				std::cout << "fault" << std::endl;
+				out << "fault" << std::endl;
 			}
 			std::cout << std::endl << "---------------------" << std::endl;
 		}

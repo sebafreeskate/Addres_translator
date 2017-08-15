@@ -1,5 +1,6 @@
 #include "AddressTranslator.h"
 #include <iostream>
+#include "PageFault.h"
 
 
 AddressTranslator::AddressTranslator()	{
@@ -26,13 +27,13 @@ TableRecord AddressTranslator::getRecord(uint64_t table, size_t pos) {
 	}
 	catch (std::out_of_range &e) {
 		std::cout << "getRecord ecxeption " << e.what() << std::endl;
-		return TableRecord();
+		throw PageFault();
 	}
 }
 
 uint64_t AddressTranslator::getPhysicalAddressOf(VirtualAddress addr) {
 	TableRecord rec = getRecord(rootTableVirtualAddress, addr.indicies[0]);
-	for (int i = 1; i < addr.indicies.size() -1 && rec.PS; ++i) {
+	for (int i = 1; i < addr.indicies.size() -1 && rec.P; ++i) {
 		rec = getRecord(rec.nextAddr, addr.indicies[i]);
 	}
 

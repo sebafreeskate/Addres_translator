@@ -17,7 +17,7 @@ public:
 	uint64_t getPhysicalAddressOf(VirtualAddress addr);
 	void print();
 private:
-	uint64_t rootTableVirtualAddress;
+	uint64_t rootTableVirtualAddress = 0;
 	std::map<uint64_t, uint64_t> pages_values; //physical map address and value
 };
 
