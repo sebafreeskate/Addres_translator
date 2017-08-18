@@ -1,10 +1,12 @@
 #pragma once
 #include <stdint.h>
-//Simplyfied descriptor of the page table's record (for any of four) 
 
-struct TableRecord {
-	TableRecord(const uint64_t& bitviseRecord);
-	TableRecord();
-	bool P; //is it final record? page fault then  
-	uint64_t nextAddr; //address of the next level table or page
+//msvsc depended
+#pragma pack(push, 1)
+union TableRecord {
+	std::uint64_t value;
+	struct {
+		std::uint64_t P : 1; //bit of usage, if zero - PAGE_FAULT!!
+	};
 };
+#pragma pack(pop)

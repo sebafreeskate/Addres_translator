@@ -22,8 +22,6 @@
     <ClCompile Include="AddressTranslator.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PageFault.cpp" />
-    <ClCompile Include="TableRecord.cpp" />
-    <ClCompile Include="VirtualAddress.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddressTranslator.h" />

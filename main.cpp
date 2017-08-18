@@ -1,7 +1,4 @@
 #include <iostream>
-#include <bitset>
-#include <functional>
-#include <map>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -34,85 +31,86 @@ void for_next_n_lines_in_file(std::ifstream & in, int n, Func action) {
 	}
 }
 
-/*Sample Input :	      Sample Otput :
-4 4 0					16384
-0 4097					fault
-4096 8193				16426
-8192 12289				fault
-12288 16385
-0
-4096
-42
-131313 */
-
-int main(int argc, char * argv[]) {
-	/*	if (argc != 2) {
+void check_params(int argc) {
+	if (argc != 2) {
 	std::cerr << "invalid params" << std::endl;
-	return -2;
-	} */
-	std::ifstream in("C:/Users/sebafreeskate/Source/Repos/Address_translator/test.txt");
+	exit(-2);
+	} 
+}
+
+std::ifstream open_input_file(const char * name) {
+	std::ifstream in(name);
 	if (!in.is_open()) {
 		std::cerr << "cant open file " << std::endl;
-		return -1;
+		exit(-1);
 	}
+	return in;
+}
 
+std::ofstream open_output_file(const char * name) {
+	std::ofstream out(name);
+	if (!out.is_open()) {
+		std::cerr << "can't open output file! " << std::endl;
+		exit(-1);
+	}
+	return out;
+}
+std::vector<uint64_t> get_first_line(std::ifstream &in) {
 	std::string line;
 	std::getline(in, line);
 	std::vector<uint64_t> firstLine = parseLine(line.c_str(), ' ');
 
 	if (firstLine.size() != 3) {
 		std::cerr << "invalid file stucture" << std::endl;
-		return 1;
+		exit(-1);
 	}
+	return firstLine;
+}
 
+AddressTranslator buildTranslator(std::ifstream &in, uint64_t addressCount, uint64_t rootTableAddress) {
 	AddressTranslator translator;
-
-	uint64_t addressCount = firstLine[0]; 
-	uint64_t queryCount = firstLine[1];
-	uint64_t rootTableAddress = firstLine[2];
-
-	std::cout << "addressCount = " << addressCount<< std::endl;
-	std::cout << "query count = " << queryCount << std::endl;
-	std::cout << "rootTableAddress = " << rootTableAddress << std::endl;
-
-	
-	for_next_n_lines_in_file(in, addressCount, 
+	translator.setRootTableAddress(rootTableAddress);
+	for_next_n_lines_in_file(in, addressCount,
 		[&translator](const std::vector<uint64_t> & tl) {
 		if (tl.size() == 2) {
 			translator.insertAddressPair(std::make_pair(tl[0], tl[1]));
 		}
 	});
+	return translator;
+}
 
-	translator.setRootTableAddress(rootTableAddress);
+int main(int argc, char * argv[]) {
 
-	translator.print();
+	check_params(argc);
 
-	std::ofstream out("C:/Users/sebafreeskate/Source/Repos/Address_translator/out.txt");
+	std::ifstream in = open_input_file(argv[1]);
+	std::ofstream out = open_output_file("./out.txt");
 
-	if (!out.is_open()) {
-		std::cerr << "can't open output file! " << std::endl;
-		return -1;
-	}
+	std::vector<uint64_t> firstLine = get_first_line(in);
+
+	AddressTranslator translator = buildTranslator(in, firstLine[0], firstLine[2]); 
+
+	uint64_t queryCount = firstLine[1];
 
 	for_next_n_lines_in_file(in, queryCount, 
 		[&translator, &out](const std::vector<uint64_t> & tl) {
 		if (!tl.empty()) {
 			uint64_t physicalAddress;
 			try {
-				physicalAddress = translator.getPhysicalAddressOf(tl[0]);
-				std::cout << physicalAddress << std::endl;
+				VirtualAddress vaddr;
+				vaddr.value = tl[0];
+				physicalAddress = translator.getPhysicalAddressOf(vaddr);
 				out << physicalAddress << std::endl;
 			}
 			catch (PageFault &e) {
-				std::cout << "fault" << std::endl;
 				out << "fault" << std::endl;
 			}
-			std::cout << std::endl << "---------------------" << std::endl;
 		}
 	});
+
 	in.close();
 	out.close();
-	std::cin >> line;
+
 	return 0;
 }
 
